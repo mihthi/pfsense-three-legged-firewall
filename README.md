@@ -1,32 +1,27 @@
-# XÂY DỰNG HỆ THỐNG MẠNG THREE-LEGGED FIREWALL VỚI PFSENSE
+# [cite_start]BÁO CÁO ĐỒ ÁN MÔN HỌC MẠNG MÁY TÍNH NÂNG CAO [cite: 3, 4]
+[cite_start]**ĐỀ TÀI: XÂY DỰNG HỆ THỐNG MẠNG THREE LEG FIREWALL** [cite: 5]
 
-[cite_start]Dự án này là đồ án môn học Mạng máy tính nâng cao của Khoa Công nghệ thông tin, Trường Đại học Sài Gòn[cite: 1, 2, 4]. [cite_start]Mục tiêu của dự án là thiết kế và triển khai giải pháp bảo mật sử dụng mô hình tường lửa 3 chân (Three-Legged Firewall)[cite: 5, 93].
+## 📖 Giới thiệu dự án
+[cite_start]Trong bối cảnh các mối đe dọa an ninh mạng ngày càng gia tăng, việc bảo vệ các hệ thống mạng của tổ chức là yếu tố quan trọng[cite: 92]. [cite_start]Tường lửa 3 chân (3-Legged Firewall) là một giải pháp an ninh mạng mạnh mẽ giúp bảo vệ các hệ thống quan trọng[cite: 96]. 
 
-## 📖 Bối Cảnh & Lý Do Chọn Đề Tài
-[cite_start]Trong bối cảnh các mối đe dọa an ninh mạng ngày càng gia tăng, việc bảo vệ cơ sở hạ tầng mạng của tổ chức là yếu tố then chốt[cite: 92]. [cite_start]Các mô hình tường lửa 1 chân hay 2 chân không đủ khả năng bảo vệ tối ưu trong môi trường mạng phức tạp[cite: 98]. 
+[cite_start]Dự án này sử dụng công cụ pfSense để thiết lập mô hình 3 legged firewall với ba khu vực mạng: Internal, DMZ, và Internet[cite: 97, 102]. [cite_start]Mô hình giúp phân tách rõ ràng các khu vực mạng quan trọng, đảm bảo rằng các dịch vụ công khai được bảo vệ và cách ly khỏi mạng nội bộ[cite: 100, 108].
 
-[cite_start]Do đó, nhóm lựa chọn mô hình tường lửa 3 chân triển khai trên nền tảng mã nguồn mở pfSense[cite: 97, 105]. [cite_start]Mô hình này giúp phân tách rõ ràng các khu vực mạng, cách ly mạng nội bộ và DMZ khỏi môi trường Internet, đảm bảo an toàn cho các dịch vụ công khai và dữ liệu nhạy cảm[cite: 94, 100].
+## 👥 Thông tin nhóm thực hiện
+* [cite_start]**Trường/Khoa:** Trường Đại học Sài Gòn - Khoa Công nghệ thông tin [cite: 1, 2]
+* **Giảng viên hướng dẫn:** ThS. [cite_start]Lương Minh Huấn [cite: 6]
+* **Thành viên:**
+  * [cite_start]Ngô Thị Minh Thi - 3122410396 - ntmthi.0234@gmail.com [cite: 8, 13]
+  * [cite_start]Tô Khổng Mỹ Hằng - 3122410104 - myhang03112004@gmail.com [cite: 9, 13]
+  * [cite_start]Ngô Khánh Tâm - 3122410370 - khanhtam08022004@gmail.com [cite: 11, 13]
+  * [cite_start]Đặng Phúc Tấn - 3122410375 - tdangphuc902@gmail.com [cite: 10, 13]
 
-## 🏗️ Kiến Trúc Hệ Thống (Network Architecture)
-[cite_start]Hệ thống được thiết kế với 3 vùng mạng độc lập[cite: 102]:
+## 🏗️ Kiến trúc hệ thống
+Mô hình tường lửa ba chân bao gồm ba vùng mạng chính:
+* [cite_start]**Internet (Mạng toàn cầu):** Mạng công cộng nơi tất cả kết nối đến từ bên ngoài[cite: 212].
+* [cite_start]**DMZ (Demilitarized Zone):** Khu vực trung gian chứa các dịch vụ công cộng như public web server[cite: 215, 312]. [cite_start]DMZ giúp cô lập các tài nguyên công khai khỏi mạng nội bộ[cite: 216].
+* [cite_start]**Internal Network (Mạng nội bộ):** Mạng riêng của tổ chức, được bảo vệ nghiêm ngặt, tách biệt hoàn toàn với Internet[cite: 218, 220].
 
-1. [cite_start]**Internet (WAN):** Mạng toàn cầu, nơi chứa các mối đe dọa không đáng tin cậy[cite: 212, 214]. [cite_start]IP được cấp phát qua DHCP (Ví dụ: `10.10.10.128/24`)[cite: 312].
-2. [cite_start]**DMZ (Demilitarized Zone):** Khu vực trung gian chứa các dịch vụ công cộng như Public Web Server[cite: 215, 312]. [cite_start]IP của máy chủ DMZ: `192.168.5.10/24`[cite: 312]. [cite_start]Các kết nối từ bên ngoài chỉ có thể tiếp cận DMZ mà không thể xâm nhập mạng nội bộ[cite: 216].
-3. [cite_start]**Internal Network (LAN):** Mạng riêng của tổ chức, lưu trữ dữ liệu nhạy cảm[cite: 218]. [cite_start]IP máy trạm: `192.168.0.10/24` và máy client: `192.168.0.25/24`[cite: 312]. 
-
-## ⚙️ Các Chức Năng Đã Triển Khai
-[cite_start]Hệ thống sử dụng tường lửa pfSense với các tính năng định tuyến và bảo mật mạnh mẽ[cite: 271]:
-
-* [cite_start]**Kiểm soát giao thông dữ liệu:** Thiết lập chính sách bảo mật để quản lý luồng dữ liệu giữa WAN, LAN và DMZ[cite: 178, 204].
-* [cite_start]**Network Address Translation (NAT):** Sử dụng Hybrid Outbound NAT để dịch địa chỉ IP nội bộ, ẩn các máy chủ nội bộ khỏi mạng bên ngoài[cite: 268, 307, 324].
-* [cite_start]**Firewall Aliases:** Tạo tập hợp định danh để chặn truy cập, bao gồm dải IP (`Blocked_IPs`: 192.168.0.20 - 192.168.0.50) và tên miền mạng xã hội (`facebook.com`)[cite: 330, 331, 332].
-* **Firewall Rules:**
-  * [cite_start]**WAN:** Chặn mạng Bogon và chỉ cho phép truy cập HTTP vào Web Server tại DMZ[cite: 326, 327].
-  * [cite_start]**LAN:** Cho phép người dùng truy cập DMZ, cho phép ra Internet ngoại trừ các dải IP và tên miền bị cấm[cite: 328].
-  * [cite_start]**DMZ:** Chặn hoàn toàn lưu lượng từ DMZ truy cập ngược vào mạng nội bộ để bảo vệ tài nguyên bên trong, chỉ cho phép DMZ ra Internet[cite: 232, 329].
-
-## 🧪 Kết Quả Demo
-[cite_start]Mô hình đã được kiểm thử thành công bằng các công cụ dòng lệnh (ping) và trình duyệt web[cite: 114, 334]:
-* [cite_start]LAN truy cập thành công dịch vụ web (SGU Test) đặt tại DMZ[cite: 335].
-* [cite_start]Máy trạm trong LAN bị chặn truy cập thành công trang `facebook.com` theo rule đã thiết lập[cite: 335].
-* [cite_start]DMZ cách ly an toàn và không thể ping vào mạng LAN[cite: 337].
+## ⚙️ Các tính năng đã cấu hình
+* [cite_start]**Phân đoạn mạng:** Cách ly mạng nội bộ và DMZ khỏi mạng ngoài internet[cite: 240].
+* [cite_start]**NAT & Firewall Rules:** Cấu hình các quy tắc firewall để đảm bảo an toàn giữa các khu vực mạng trên pfSense[cite: 119].
+* [cite_start]**Bảo vệ Web Server:** Cho phép truy cập an toàn vào dịch vụ công khai tại DMZ mà không làm lộ mạng nội bộ[cite: 243, 250].
