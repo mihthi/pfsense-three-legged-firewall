@@ -1,0 +1,43 @@
+# CHI TIẾT CẤU HÌNH PFSENSE THREE-LEGGED FIREWALL
+
+## [cite_start]1. Bảng thiết lập địa chỉ IP [cite: 311, 312]
+
+| Vùng mạng | Chức năng | IP |
+| :--- | :--- | :--- |
+| **LAN** | Máy trạm kết nối mạng nội bộ, DMZ và internet. | `192.168.0.10/24` |
+| **LAN** | Máy client kết nối mạng nội bộ, DMZ, không truy cập internet. | `192.168.0.25/24` |
+| **PFSENSE** | LAN interface. | `192.168.0.5/24` |
+| **DMZ** | Máy chủ DMZ chứa dịch vụ Public Web Server. | `192.168.5.10/24` |
+| **PFSENSE** | DMZ interface. | `192.168.5.5/24` |
+| **WAN** | Mạng internet bên ngoài. | `10.10.10.128/24 (DHCP)` |
+
+* [cite_start]**Cấu hình DNS cho pfSense:** `8.8.8.8` và `1.1.1.1`[cite: 324, 325].
+
+## [cite_start]2. Cấu hình NAT (Network Address Translation) [cite: 323, 324]
+Hệ thống sử dụng **Hybrid Outbound NAT rule generation** với các rules sau:
+* **LAN:** Source `192.168.0.0/24`, Destination `192.168.5.0/24`, NAT Address: `LAN address`.
+* **WAN:** Source `192.168.5.0/24`, Destination `*`, NAT Address: `WAN address`.
+* **WAN:** Source `192.168.0.0/24`, Destination `*`, NAT Address: `WAN address`.
+
+## [cite_start]3. Cấu hình Aliases [cite: 329, 330]
+* **`Blocked_IPs`:** Chứa dải IP `192.169.0.20/30`, `192.168.0.24/29`, `192.168.0.32/27` (Mục đích: chan dai ip 192.168.0.20 - 192.168.0.50).
+* **`facebook`:** Chứa domain `facebook.com` (Mục đích: chan truy cap facebook).
+
+## 4. Cấu hình Firewall Rules
+
+### 4.1. Rules cho WAN [cite: 326, 327]
+* **Block:** Source `Reserved Not assigned by IANA` (Block bogon networks).
+* **Pass:** Protocol `IPv4 TCP`, Source `*`, Destination `OPT1 net`, Port `80 (HTTP)` (truy cap tu WAN den web DMZ).
+
+### 4.2. [cite_start]Rules cho LAN 
+* **Pass:** Protocol `*`, Source `*`, Destination `LAN Address`, Port `80` (Anti-Lockout Rule).
+* **Block:** Protocol `IPv4 *`, Source `LAN net`, Destination `facebook`, Port `*` (chan truy cap toi facebook).
+* **Pass:** Protocol `IPv4 TCP`, Source `LAN net`, Destination `192.168.5.10`, Port `80 (HTTP)` (LAN truy cap web cua DMZ).
+* **Block:** Protocol `IPv4 *`, Source `Blocked_IPs`, Destination `*`, Port `*` (chan dai ip 192.168.0.20 - 192.168.0.50).
+* **Pass:** Protocol `IPv4 TCP`, Source `LAN net`, Destination `OPT1 net`, Port `*` (LAN truy cap DMZ).
+* **Pass:** Protocol `IPv4 *`, Source `LAN net`, Destination `*`, Port `*` (Default allow LAN to any rule).
+
+### 4.3. [cite_start]Rules cho DMZ (OPT1) [cite: 328, 329]
+* **Pass:** Protocol `IPv4 *`, Source `OPT1 net`, Destination `OPT1 address`, Port `*` (DMZ ket noi voi pfsense).
+* **Block:** Protocol `IPv4 TCP`, Source `OPT1 net`, Destination `LAN net`, Port `*` (DMZ truy cap LAN).
+* **Pass:** Protocol `IPv4 *`, Source `OPT1 net`, Destination `*`, Port `*` (DMZ truy cap internet).
